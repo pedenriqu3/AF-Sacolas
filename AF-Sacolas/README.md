@@ -1,83 +1,58 @@
-# AF — Sacolas
+# Sistema de Customização e Pedidos de Sacolas (SaaS)
 
-Aplicação front-end criada com Vite + React para demonstrar a interface do projeto "AF — Sacolas".
+Um sistema web interativo e responsivo projetado originalmente para a **AF Sacolas**, mas construído com arquitetura escalável para ser comercializado como uma plataforma SaaS (*Software as a Service*) para outras empresas do setor de embalagens e brindes.
 
-## Descrição
+O objetivo principal da plataforma é automatizar o processo de venda e orçamento, permitindo que o próprio cliente monte, visualize e pague pelo seu pedido de forma 100% autônoma.
 
-Este repositório contém a aplicação React do projeto. A interface é construída com componentes reutilizáveis (Navbar, Hero, Materials, Testimonials, Footer, etc.) e inclui uma página de login.
+---
 
-## Funcionalidades
+## Funcionalidades Principais
 
-- Layout responsivo com componentes React
-- Página de login simples
-- Estrutura pronta para desenvolvimento com Vite
+### Painel de Customização e Preview (Core)
+* **Modelagem do Produto:** Escolha entre modelos de sacola (Boca de Palhaço ou Papel).
+* **Seleção de Atributos:** Definição das cores da sacola, cores da logo e tipo de alça (para modelos de papel).
+* **Esboço Dinâmico (Preview):** Geração visual em tempo real do esboço da sacola customizada pelo cliente.
+* **Orçamento Automatizado:** Cálculo instantâneo do valor do pedido com base nos atributos e quantidades escolhidas.
 
-## Tecnologias
+### Checkout e Agendamento
+* **Pagamento Instantâneo:** Geração de QR Code dinâmico para pagamento rápido (ex: Pix / Gateway de pagamento).
+* **Fluxo de Produção:** Agendamento automático do pedido no cronograma da empresa após a confirmação do pagamento.
 
-- React 19
-- Vite
-- ESLint
+### Área do Cliente
+* **Autenticação:** Sistema completo de Login e Cadastro de clientes.
+* **Histórico:** Acompanhamento do status dos pedidos e orçamentos salvos.
 
-## Pré-requisitos
+### Institucional e Social Proof
+* **Home Page:** Tela de início moderna apresentando a empresa e os diferenciais do produto.
+* **Portfólio:** Galeria dinâmica mostrando trabalhos e encomendas já realizados.
+* **Avaliações:** Espaço para depoimentos e notas deixadas por clientes satisfeitos.
 
-- Node.js 18+ (recomendado)
-- npm ou yarn
+---
 
-## Instalação
+## Arquitetura do Sistema (Visão SaaS)
 
-No diretório do projeto, instale as dependências:
+O sistema foi planejado para ser **multi-inquilino (Multitenant)** no futuro. Isso significa que as configurações da AF Sacolas (como preços por cor, tipos de alça disponíveis e logo da empresa) ficam separadas das regras de negócio do sistema, facilitando o *rebranding* para novos clientes.
 
-```bash
-npm install
-# ou
- yarn install
-```
+---
 
-## Execução em desenvolvimento
+## Tecnologias Cogitadas / Utilizadas
 
-Inicie o servidor de desenvolvimento:
+*Se você já tiver definido a stack (ex: Go, React, PostgreSQL, Docker), substitua ou complemente esta seção.*
 
-```bash
-npm run dev
-```
+* **Frontend:** HTML5, CSS3, JavaScript (ou React / Vue para gerenciamento de estado do customizador).
+* **Backend:** [Inserir Tecnologia, ex: Go / Node.js] — responsável pelas regras de orçamento e integração de pagamentos.
+* **Banco de Dados:** [Inserir Banco, ex: PostgreSQL / MySQL] — para persistência de usuários, pedidos e configurações de produtos.
+* **Integrações:** API de Gateway de Pagamento para geração de QR Code.
 
-O Vite normalmente abre em `http://localhost:5173`, mas a porta pode variar — verifique o terminal.
+---
 
-## Build para produção
+## Estrutura do Banco de Dados (Entidades Principais)
 
-```bash
-npm run build
-```
+Para suportar o fluxo do projeto, o banco conta com as seguintes entidades base:
+* **Users / Customers:** Dados cadastrais e credenciais de acesso.
+* **Products / Models:** Modelos de sacolas e coeficientes de preço para o orçamento.
+* **Orders / Budgets:** Registros dos pedidos, especificações da sacola escolhida, status do pagamento e data de agendamento.
+* **Portfólio & Reviews:** Imagens de trabalhos anteriores e depoimentos dos clientes.
 
-Pré-visualizar o build:
-
-```bash
-npm run preview
-```
-
-## Scripts disponíveis
-
-- `npm run dev` — inicia o servidor de desenvolvimento
-- `npm run build` — gera os arquivos de produção
-- `npm run preview` — pré-visualiza o build de produção
-- `npm run lint` — executa o ESLint
-
-## Estrutura do projeto (resumo)
-
-- `index.html` — entrada HTML
-- `src/main.jsx` — bootstrap da aplicação
-- `src/App.jsx` — componente principal
-- `src/componentes/` — componentes da UI (Navbar, Hero, Materials, Footer, etc.)
-- `src/login/Login.jsx` — página/componente de login
-
-## Contribuição
-
-Contribuições são bem-vindas. Abra uma issue para discutir alterações antes de enviar um pull request.
-
-## Licença
-
-Nenhuma licença foi definida. Para tornar o projeto open-source, adicione um arquivo `LICENSE` (ex.: MIT).
-
-## Contato
-
-Abra uma issue neste repositório para dúvidas ou suporte.
+## Status do Projeto
+- [x] Estrutura inicial do Git configurada!
