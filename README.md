@@ -55,4 +55,4 @@ Para suportar o fluxo do projeto, o banco conta com as seguintes entidades base:
 * **Portfólio & Reviews:** Imagens de trabalhos anteriores e depoimentos dos clientes.
 
 ## Status do Projeto
-- [x] Estrutura inicial do Git configurada.
+- [x] Estrutura inicial do Git configurada!
