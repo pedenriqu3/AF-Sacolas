@@ -1,6 +1,7 @@
 import fotoPrincipal from '../assets/mayConcept.jpeg'; 
 import fotoCima from '../assets/aldenoraFlores.jpeg';
-import fotoBaixo from '../assets/arturSmartphone.jpeg';
+import fotoBaixo from '../assets/artursmartphone.jpeg';
+
 
 export default function Materials() {
   return (
