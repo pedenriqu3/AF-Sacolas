@@ -120,6 +120,7 @@ export default function App() {
       ) : isRegisterActive ? (
         <Registro
           onClose={() => setIsRegisterActive(false)}
+          onLogin={openLoginScreen}
           onRegisterSubmit={handleRegister}
         />
       ) : isLoginActive ? (

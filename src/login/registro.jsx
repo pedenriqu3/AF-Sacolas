@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../login.css";
 import defaultLogo from "../assets/logo-af.png";
 
-export default function Registro({ onClose, onRegisterSubmit, logoSrc = defaultLogo }) {
+export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc = defaultLogo }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -109,6 +109,14 @@ export default function Registro({ onClose, onRegisterSubmit, logoSrc = defaultL
             {error && <p className="auth-error">{error}</p>}
 
             <div className="divider">OU</div>
+
+            <button
+              type="button"
+              className="register-btn"
+              onClick={() => onLogin && onLogin()}
+            >
+              JÁ TENHO CONTA
+            </button>
 
             <p className="copyright">
               © 2023 AF Sacolas.
