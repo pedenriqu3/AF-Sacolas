@@ -4,10 +4,10 @@ import fotoBaixo from '../assets/arturSmartphone.jpeg';
 
 export default function Materials() {
   return (
-    <section className="container materials-section" id="materiais">
-      <h2>Qualidade em cada detalhe</h2>
+    <section className="container materials-section" id="galeria">
+      <h2>Galeria e referências</h2>
 
-      <div className="grid" id="galeria">
+      <div className="grid">
         <div className="card card-large">
           <img src={fotoPrincipal} width="100%" />
         </div>

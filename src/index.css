@@ -108,11 +108,15 @@ img {
   position: relative;
   max-width: 500px;
   z-index: 2;
-  padding: 28px 0;
+  padding: 32px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .hero span {
-  color: #0c0069;
+  color: #12008f;
   font-size: 12px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -122,12 +126,12 @@ img {
 .hero h1 {
   font-size: clamp(42px, 5vw, 64px);
   margin: 20px 0;
-  color: #0c0069;
+  color: #0a0f2c;
   line-height: 1.02;
 }
 
 .hero p {
-  color: #555;
+  color: #334155;
   font-size: 18px;
   line-height: 1.6;
 }
@@ -161,7 +165,7 @@ img {
   border: 1px solid #0c0069;
   padding: 12px 20px;
   color: #0c0069;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .buttons a:hover {
@@ -293,9 +297,11 @@ img {
 
 .testimonials-layout {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
+  max-width: 920px;
+  margin: 0 auto;
 }
 
 .testimonials-spotlight,
@@ -347,6 +353,82 @@ img {
 .testimonials-grid {
   display: grid;
   gap: 16px;
+}
+
+.feedback-form {
+  margin-bottom: 18px;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(12, 0, 105, 0.05), rgba(12, 0, 105, 0.02));
+  border: 1px solid rgba(12, 0, 105, 0.08);
+}
+
+.feedback-form__row {
+  display: grid;
+  gap: 8px;
+}
+
+.feedback-form__row label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.feedback-form textarea,
+.feedback-form select {
+  width: 100%;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+  font: inherit;
+  color: #0f172a;
+}
+
+.feedback-form textarea {
+  resize: vertical;
+}
+
+.feedback-form__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feedback-login-btn,
+.feedback-submit-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.feedback-login-btn {
+  background: rgba(12, 0, 105, 0.08);
+  color: #0c0069;
+}
+
+.feedback-submit-btn {
+  background: #0c0069;
+  color: #fff;
+}
+
+.feedback-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .testimonial--premium {

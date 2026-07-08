@@ -2,22 +2,29 @@ import { useState } from "react";
 import "../login.css";
 import defaultLogo from "../assets/logo-af.png";
 
-export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }) {
+export default function Registro({ onClose, onRegisterSubmit, logoSrc = defaultLogo }) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setError("");
 
-    const result = onLogin?.({ email, password });
+    if (password !== confirmPassword) {
+      setError("As senhas precisam ser iguais.");
+      return;
+    }
+
+    const result = onRegisterSubmit?.({ name, email, password });
 
     if (result?.ok) {
       return;
     }
 
-    setError(result?.error || "Não foi possível entrar com os dados informados.");
+    setError(result?.error || "Não foi possível criar sua conta agora.");
   };
 
   return (
@@ -53,11 +60,20 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
             </button>
           )}
 
-          <h2>Bem-vindo!</h2>
+          <h2>Crie sua conta</h2>
 
-          <span>Acesse sua conta.</span>
+          <span>Cadastre-se para começar a usar o AF Sacolas.</span>
 
           <form onSubmit={handleSubmit}>
+
+            <label>NOME COMPLETO</label>
+            <input
+              type="text"
+              placeholder="Seu nome"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              required
+            />
 
             <label>E-MAIL</label>
             <input
@@ -68,11 +84,7 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
               required
             />
 
-            <div className="password-header">
-              <label>SENHA</label>
-              <a href="#">Esqueceu sua senha?</a>
-            </div>
-
+            <label>SENHA</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -81,32 +93,28 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
               required
             />
 
-            <div className="remember">
-              <input type="checkbox" />
-              <span>Lembrar de mim</span>
-            </div>
+            <label>CONFIRMAR SENHA</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              required
+            />
 
             <button className="login-btn" type="submit">
-              ENTRAR
+              CRIAR CONTA
             </button>
 
             {error && <p className="auth-error">{error}</p>}
 
             <div className="divider">OU</div>
 
-            <button
-              type="button"
-              className="register-btn"
-              onClick={() => onRegister && onRegister()}
-            >
-              CRIAR NOVA CONTA
-            </button>
+            <p className="copyright">
+              © 2023 AF Sacolas.
+            </p>
 
           </form>
-
-          <p className="copyright">
-            © 2023 AF Sacolas.
-          </p>
 
         </div>
       </div>

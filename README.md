@@ -37,7 +37,6 @@ O sistema foi planejado para ser **multi-inquilino (Multitenant)** no futuro. Is
 
 ## Tecnologias Cogitadas / Utilizadas
 
-*Se você já tiver definido a stack (ex: Go, React, PostgreSQL, Docker), substitua ou complemente esta seção.*
 
 * **Frontend:** HTML5, CSS3, JavaScript (ou React / Vue para gerenciamento de estado do customizador).
 * **Backend:** [Inserir Tecnologia, ex: Go / Node.js] — responsável pelas regras de orçamento e integração de pagamentos.
