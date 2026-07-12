@@ -6,35 +6,44 @@ import Eco from "./componentes/Eco";
 import FeedBack from "./componentes/Testimonials";
 import Footer from "./componentes/Footer";
 import Login from "./login/Login";
-import Registro from "./login/registro";
+import Registro from "./login/Registro";
 import Pedido from "./pedido/Pedido";
 
 const USERS_STORAGE_KEY = "af_users";
 const CURRENT_USER_STORAGE_KEY = "af_current_user";
 
-function readFromStorage(key, fallbackValue) {
+export interface User {
+  id?: number;
+  name: string;
+  email: string;
+  password?: string;
+}
+
+function readFromStorage<T>(key: string, fallbackValue: T): T {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallbackValue;
+    return raw ? (JSON.parse(raw) as T) : fallbackValue;
   } catch {
     return fallbackValue;
   }
 }
 
 export default function App() {
-  const [activeNavId, setActiveNavId] = useState("inicio");
-  const [isLoginActive, setIsLoginActive] = useState(false);
-  const [isRegisterActive, setIsRegisterActive] = useState(false);
-  const [isOrderActive, setIsOrderActive] = useState(false);
-  const [users, setUsers] = useState(() => readFromStorage(USERS_STORAGE_KEY, []));
-  const [currentUser, setCurrentUser] = useState(() => readFromStorage(CURRENT_USER_STORAGE_KEY, null));
+  const [activeNavId, setActiveNavId] = useState<string>("inicio");
+  const [isLoginActive, setIsLoginActive] = useState<boolean>(false);
+  const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
+  const [isOrderActive, setIsOrderActive] = useState<boolean>(false);
+  const [users, setUsers] = useState<User[]>(() => readFromStorage<User[]>(USERS_STORAGE_KEY, []));
+  const [currentUser, setCurrentUser] = useState<User | null>(() =>
+    readFromStorage<User | null>(CURRENT_USER_STORAGE_KEY, null)
+  );
 
-  const saveUsers = (nextUsers) => {
+  const saveUsers = (nextUsers: User[]) => {
     setUsers(nextUsers);
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
   };
 
-  const saveCurrentUser = (user) => {
+  const saveCurrentUser = (user: User | null) => {
     setCurrentUser(user);
 
     if (user) {
@@ -67,7 +76,7 @@ export default function App() {
     setIsOrderActive(false);
   };
 
-  const handleLogin = ({ email, password }) => {
+  const handleLogin = ({ email, password }: { email: string; password?: string }) => {
     const normalizedEmail = email.trim().toLowerCase();
     const foundUser = users.find(
       (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
@@ -83,7 +92,7 @@ export default function App() {
     return { ok: true };
   };
 
-  const handleRegister = ({ name, email, password }) => {
+  const handleRegister = ({ name, email, password }: { name: string; email: string; password?: string }) => {
     const normalizedEmail = email.trim().toLowerCase();
     const hasUser = users.some((user) => user.email.toLowerCase() === normalizedEmail);
 

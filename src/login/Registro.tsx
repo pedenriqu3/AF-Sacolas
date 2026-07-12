@@ -1,15 +1,22 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "../login.css";
 import defaultLogo from "../assets/logo-af.png";
 
-export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc = defaultLogo }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+interface RegistroProps {
+  onClose?: () => void;
+  onLogin?: () => void;
+  onRegisterSubmit?: (data: { name: string; email: string; password?: string }) => { ok: boolean; error?: string } | undefined;
+  logoSrc?: string;
+}
 
-  const handleSubmit = (event) => {
+export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc = defaultLogo }: RegistroProps) {
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -29,9 +36,7 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
 
   return (
     <div className="login-page">
-
       <div className="login-container">
-
         {/* LADO ESQUERDO */}
         <div className="login-left">
           <div className="login-brand">
@@ -65,7 +70,6 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
           <span>Cadastre-se para começar a usar o AF Sacolas.</span>
 
           <form onSubmit={handleSubmit}>
-
             <label>NOME COMPLETO</label>
             <input
               type="text"
@@ -121,9 +125,7 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
             <p className="copyright">
               © 2023 AF Sacolas.
             </p>
-
           </form>
-
         </div>
       </div>
     </div>

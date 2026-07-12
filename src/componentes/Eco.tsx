@@ -18,6 +18,7 @@ export default function Eco() {
         <img
           src="https://images.unsplash.com/photo-1492724441997-5dc865305da7"
           width="300"
+          alt="Sacolas Ecológicas"
         />
       </div>
     </section>

@@ -1,8 +1,14 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import defaultLogo from "../assets/logo-af.png";
 import "./pedido.css";
 
-const bagTypes = [
+interface BagType {
+  value: string;
+  label: string;
+  description: string;
+}
+
+const bagTypes: BagType[] = [
   {
     value: "sacola-de-papel",
     label: "Sacola de papel",
@@ -25,7 +31,14 @@ const bagTypes = [
   },
 ];
 
-const logoColors = [
+interface ColorOption {
+  name: string;
+  value: string;
+  hex: string;
+  transparent?: boolean;
+}
+
+const logoColors: ColorOption[] = [
   { name: "Preto", value: "Preto", hex: "#111111" },
   { name: "Branco", value: "Branco", hex: "#f8fafc" },
   { name: "Vermelho", value: "Vermelho", hex: "#dc2626" },
@@ -44,15 +57,20 @@ const logoColors = [
   { name: "Preto Fosco", value: "Preto Fosco", hex: "#1f2937" },
 ];
 
-const bagColors = [
+const bagColors: ColorOption[] = [
   { name: "Transparente", value: "Transparente", hex: "transparent", transparent: true },
   ...logoColors,
 ];
 
-const handleTypes = ["Nylon", "Gorgurão"];
-const handleColors = ["Preto", "Branco", "Bege", "Verde", "Vermelho", "Azul"];
+const handleTypes: string[] = ["Nylon", "Gorgurão"];
+const handleColors: string[] = ["Preto", "Branco", "Bege", "Verde", "Vermelho", "Azul"];
 
-const sizeOptionsByBagType = {
+interface SizeOption {
+  value: string;
+  label: string;
+}
+
+const sizeOptionsByBagType: Record<string, SizeOption[]> = {
   "alca-fita": [
     { value: "27x40", label: "27 x 40" },
     { value: "36x36", label: "36 x 36" },
@@ -89,14 +107,28 @@ const sizeOptionsByBagType = {
   ],
 };
 
-const quantityRules = {
+interface QuantityRule {
+  label: string;
+  mode: "select" | "number";
+  start?: number;
+  step?: number;
+  count?: number;
+  min?: number;
+}
+
+const quantityRules: Record<string, QuantityRule> = {
   "boca-de-palhaco": { label: "Por cento", mode: "select", start: 100, step: 100, count: 10 },
   "sacola-de-papel": { label: "A partir de 50 unidades", mode: "number", min: 50 },
   "papel-kraft": { label: "A partir de 50 unidades", mode: "number", min: 50 },
   "alca-fita": { label: "A partir de 50 unidades", mode: "select", start: 50, step: 50, count: 10 },
 };
 
-const basePricesByBagType = {
+interface PricePricing {
+  baseQuantity: number;
+  sizes: Record<string, number>;
+}
+
+const basePricesByBagType: Record<string, PricePricing> = {
   "boca-de-palhaco": {
     baseQuantity: 100,
     sizes: {
@@ -145,28 +177,33 @@ const basePricesByBagType = {
   },
 };
 
-const handleExtraByType = {
+const handleExtraByType: Record<string, number> = {
   Nylon: 0,
-  "Gorgurão": 0.5,
+  Gorgurão: 0.5,
 };
 
-const formatCurrency = (value) =>
+const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
   }).format(value);
 
-export default function Pedido({ onClose, logoSrc = defaultLogo }) {
-  const [bagType, setBagType] = useState("sacola-de-papel");
-  const [selectedBagColors, setSelectedBagColors] = useState(["Branco"]);
-  const [selectedLogoColors, setSelectedLogoColors] = useState(["Preto"]);
-  const [handleType, setHandleType] = useState("Nylon");
-  const [handleColor, setHandleColor] = useState("Preto");
-  const [size, setSize] = useState("11,5x9,5x4");
-  const [quantity, setQuantity] = useState("50");
-  const [logoFront, setLogoFront] = useState(true);
-  const [logoBack, setLogoBack] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+interface PedidoProps {
+  onClose?: () => void;
+  logoSrc?: string;
+}
+
+export default function Pedido({ onClose, logoSrc = defaultLogo }: PedidoProps) {
+  const [bagType, setBagType] = useState<string>("sacola-de-papel");
+  const [selectedBagColors, setSelectedBagColors] = useState<string[]>(["Branco"]);
+  const [selectedLogoColors, setSelectedLogoColors] = useState<string[]>(["Preto"]);
+  const [handleType, setHandleType] = useState<string>("Nylon");
+  const [handleColor, setHandleColor] = useState<string>("Preto");
+  const [size, setSize] = useState<string>("11,5x9,5x4");
+  const [quantity, setQuantity] = useState<string>("50");
+  const [logoFront, setLogoFront] = useState<boolean>(true);
+  const [logoBack, setLogoBack] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
   const selectedBag = useMemo(
     () => bagTypes.find((item) => item.value === bagType),
@@ -181,11 +218,17 @@ export default function Pedido({ onClose, logoSrc = defaultLogo }) {
     [bagType]
   );
 
-  const quantityRule = quantityRules[bagType] || quantityRules["sacola-de-papel"];
+  const quantityRule = useMemo(
+    () => quantityRules[bagType] || quantityRules["sacola-de-papel"],
+    [bagType]
+  );
+
   const quantityOptions = useMemo(
     () =>
       Array.from({ length: quantityRule.count || 0 }, (_, index) => {
-        const value = quantityRule.start + index * quantityRule.step;
+        const start = quantityRule.start || 0;
+        const step = quantityRule.step || 0;
+        const value = start + index * step;
 
         return {
           value: String(value),
@@ -243,7 +286,7 @@ export default function Pedido({ onClose, logoSrc = defaultLogo }) {
     size,
   ]);
 
-  const handleBagTypeChange = (event) => {
+  const handleBagTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextBagType = event.target.value;
     const nextQuantityRule = quantityRules[nextBagType] || quantityRules["sacola-de-papel"];
     const nextSizeOptions = sizeOptionsByBagType[nextBagType] || sizeOptionsByBagType["sacola-de-papel"];
@@ -257,7 +300,7 @@ export default function Pedido({ onClose, logoSrc = defaultLogo }) {
     }
   };
 
-  const toggleLogoColor = (colorValue) => {
+  const toggleLogoColor = (colorValue: string) => {
     setSelectedLogoColors((currentColors) => {
       if (currentColors.includes(colorValue)) {
         const nextColors = currentColors.filter((item) => item !== colorValue);
@@ -268,7 +311,7 @@ export default function Pedido({ onClose, logoSrc = defaultLogo }) {
     });
   };
 
-  const toggleBagColor = (colorValue) => {
+  const toggleBagColor = (colorValue: string) => {
     setSelectedBagColors((currentColors) => {
       if (isSingleBagColorMode) {
         return [colorValue];
@@ -283,7 +326,7 @@ export default function Pedido({ onClose, logoSrc = defaultLogo }) {
     });
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitted(true);
   };

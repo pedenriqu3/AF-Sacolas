@@ -1,21 +1,36 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { User } from "../App";
 
 const FEEDBACKS_STORAGE_KEY = "af_feedbacks";
 
-function readFeedbacks() {
+interface Feedback {
+  id: number;
+  name: string;
+  role: string;
+  rating: number;
+  message: string;
+  createdAt: string;
+}
+
+interface TestimonialsProps {
+  currentUser: User | null;
+  onRequestLogin?: () => void;
+}
+
+function readFeedbacks(): Feedback[] {
   try {
     const raw = localStorage.getItem(FEEDBACKS_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? (JSON.parse(raw) as Feedback[]) : [];
   } catch {
     return [];
   }
 }
 
-export default function Testimonials({ currentUser, onRequestLogin }) {
-  const [feedbacks, setFeedbacks] = useState(() => readFeedbacks());
-  const [rating, setRating] = useState("5");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+export default function Testimonials({ currentUser, onRequestLogin }: TestimonialsProps) {
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>(() => readFeedbacks());
+  const [rating, setRating] = useState<string>("5");
+  const [message, setMessage] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const averageRating = useMemo(() => {
     if (feedbacks.length === 0) {
@@ -26,7 +41,7 @@ export default function Testimonials({ currentUser, onRequestLogin }) {
     return (total / feedbacks.length).toFixed(1);
   }, [feedbacks]);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -41,7 +56,7 @@ export default function Testimonials({ currentUser, onRequestLogin }) {
       return;
     }
 
-    const nextFeedback = {
+    const nextFeedback: Feedback = {
       id: Date.now(),
       name: currentUser.name,
       role: "Cliente cadastrado",
@@ -93,7 +108,7 @@ export default function Testimonials({ currentUser, onRequestLogin }) {
               <label htmlFor="feedback-message">Seu feedback</label>
               <textarea
                 id="feedback-message"
-                rows="4"
+                rows={4}
                 placeholder={
                   currentUser
                     ? "Conte como foi sua experiência com a AF Sacolas."

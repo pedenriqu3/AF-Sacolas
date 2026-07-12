@@ -1,6 +1,10 @@
 import imagemFundo from '../assets/logoInicio.jpeg';
 
-export default function Hero({ onPedidoClick }) {
+interface HeroProps {
+  onPedidoClick?: () => void;
+}
+
+export default function Hero({ onPedidoClick }: HeroProps) {
   return (
     <section className="hero" id="inicio">
       <img src={imagemFundo} alt="Imagem de fundo" className="hero-background" />

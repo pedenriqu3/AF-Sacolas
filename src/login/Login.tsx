@@ -1,13 +1,20 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "../login.css";
 import defaultLogo from "../assets/logo-af.png";
 
-export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+interface LoginProps {
+  onClose?: () => void;
+  onRegister?: () => void;
+  onLogin?: (data: { email: string; password?: string }) => { ok: boolean; error?: string } | undefined;
+  logoSrc?: string;
+}
 
-  const handleSubmit = (event) => {
+export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }: LoginProps) {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -22,9 +29,7 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
 
   return (
     <div className="login-page">
-
       <div className="login-container">
-
         {/* LADO ESQUERDO */}
         <div className="login-left">
           <div className="login-brand">
@@ -58,7 +63,6 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
           <span>Acesse sua conta.</span>
 
           <form onSubmit={handleSubmit}>
-
             <label>E-MAIL</label>
             <input
               type="email"
@@ -101,13 +105,11 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
             >
               CRIAR NOVA CONTA
             </button>
-
           </form>
 
           <p className="copyright">
             © 2023 AF Sacolas.
           </p>
-
         </div>
       </div>
     </div>

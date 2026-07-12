@@ -2,7 +2,6 @@ import fotoPrincipal from '../assets/mayConcept.jpeg';
 import fotoCima from '../assets/aldenoraFlores.jpeg';
 import fotoBaixo from '../assets/artursmartphone.jpeg';
 
-
 export default function Materials() {
   return (
     <section className="container materials-section" id="galeria">
@@ -10,16 +9,16 @@ export default function Materials() {
 
       <div className="grid">
         <div className="card card-large">
-          <img src={fotoPrincipal} width="100%" />
+          <img src={fotoPrincipal} width="100%" alt="Foto Principal" />
         </div>
 
         <div className="stacked-cards">
           <div className="card">
-            <img src={fotoCima} width="100%" />
+            <img src={fotoCima} width="100%" alt="Foto Superior" />
           </div>
 
           <div className="card">
-            <img src={fotoBaixo} width="100%" />
+            <img src={fotoBaixo} width="100%" alt="Foto Inferior" />
           </div>
         </div>
       </div>

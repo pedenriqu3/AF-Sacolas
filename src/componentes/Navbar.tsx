@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-const links = [
+interface LinkItem {
+  id: string;
+  label: string;
+}
+
+const links: LinkItem[] = [
   { id: "inicio", label: "Início" },
   { id: "galeria", label: "Galeria" },
   { id: "sobre", label: "Sobre" },
@@ -9,17 +14,27 @@ const links = [
   { id: "login", label: "Login" },
 ];
 
+interface NavbarProps {
+  activeId?: string;
+  onActiveChange?: (id: string) => void;
+  onNavigate?: (id: string) => void;
+  onLoginClick?: () => void;
+  onPedidoClick?: () => void;
+}
+
 export default function Navbar({
   activeId = "inicio",
   onActiveChange,
   onNavigate,
   onLoginClick,
   onPedidoClick,
-}) {
-  const [observedId, setObservedId] = useState(activeId);
+}: NavbarProps) {
+  const [observedId, setObservedId] = useState<string>(activeId);
 
   useEffect(() => {
-    const sections = links.map(({ id }) => document.getElementById(id)).filter(Boolean);
+    const sections = links
+      .map(({ id }) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
 
     if (sections.length === 0) {
       return undefined;
@@ -48,7 +63,7 @@ export default function Navbar({
 
   const activeLinkId = activeId || observedId;
 
-  const handleLinkClick = (e, link) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, link: LinkItem) => {
     onActiveChange?.(link.id);
 
     if (link.id === "pedido") {
