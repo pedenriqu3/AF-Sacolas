@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String
+  email        String     @unique
+  phone        String?
+  zipCode      String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  feedbacks    Feedback[]
+  orders       Order[]
+}
+
+model Feedback {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  message   String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  bagType      String
+  bagColors    String
+  logoColors   String
+  handleType   String
+  handleColor  String
+  size         String
+  quantity     Int
+  logoFront    Boolean  @default(true)
+  logoBack     Boolean  @default(false)
+  totalAmount  Float
+  status       String   @default("Pendente")
+  shippingAddr String?
+  createdAt    DateTime @default(now())
+}

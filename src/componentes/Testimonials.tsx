@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { User } from "../App";
+import { User } from "../types";
 
 const FEEDBACKS_STORAGE_KEY = "af_feedbacks";
 
@@ -73,7 +73,7 @@ export default function Testimonials({ currentUser, onRequestLogin }: Testimonia
   };
 
   return (
-    <section className="testimonials-section container">
+    <section className="testimonials-section container" id="contato">
       <div className="testimonials-layout">
         <div className="testimonials-spotlight card">
           <div className="spotlight-header">

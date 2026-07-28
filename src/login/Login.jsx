@@ -1,43 +1,30 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "../login.css";
 import defaultLogo from "../assets/logo-af.png";
 
-interface LoginProps {
-  onClose?: () => void;
-  onRegister?: () => void;
-  onLogin?: (data: { email: string; password?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string } | undefined;
-  logoSrc?: string;
-}
+export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }: LoginProps) {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     setError("");
-    setLoading(true);
 
-    try {
-      const result = await onLogin?.({ email, password });
+    const result = onLogin?.({ email, password });
 
-      if (result?.ok) {
-        return;
-      }
-
-      setError(result?.error || "Não foi possível entrar com os dados informados.");
-    } catch {
-      setError("Erro ao se comunicar com o servidor.");
-    } finally {
-      setLoading(false);
+    if (result?.ok) {
+      return;
     }
+
+    setError(result?.error || "Não foi possível entrar com os dados informados.");
   };
 
   return (
     <div className="login-page">
+
       <div className="login-container">
+
         {/* LADO ESQUERDO */}
         <div className="login-left">
           <div className="login-brand">
@@ -71,6 +58,7 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
           <span>Acesse sua conta.</span>
 
           <form onSubmit={handleSubmit}>
+
             <label>E-MAIL</label>
             <input
               type="email"
@@ -98,8 +86,8 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
               <span>Lembrar de mim</span>
             </div>
 
-            <button className="login-btn" type="submit" disabled={loading}>
-              {loading ? "ENTRANDO..." : "ENTRAR"}
+            <button className="login-btn" type="submit">
+              ENTRAR
             </button>
 
             {error && <p className="auth-error">{error}</p>}
@@ -113,11 +101,13 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
             >
               CRIAR NOVA CONTA
             </button>
+
           </form>
 
           <p className="copyright">
             © 2023 AF Sacolas.
           </p>
+
         </div>
       </div>
     </div>

@@ -5,18 +5,20 @@ import defaultLogo from "../assets/logo-af.png";
 interface RegistroProps {
   onClose?: () => void;
   onLogin?: () => void;
-  onRegisterSubmit?: (data: { name: string; email: string; password?: string }) => { ok: boolean; error?: string } | undefined;
+  onRegisterSubmit?: (data: { name: string; email: string; phone?: string; password?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string } | undefined;
   logoSrc?: string;
 }
 
 export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc = defaultLogo }: RegistroProps) {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -25,13 +27,21 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
       return;
     }
 
-    const result = onRegisterSubmit?.({ name, email, password });
+    setLoading(true);
 
-    if (result?.ok) {
-      return;
+    try {
+      const result = await onRegisterSubmit?.({ name, email, phone, password });
+
+      if (result?.ok) {
+        return;
+      }
+
+      setError(result?.error || "Não foi possível criar sua conta agora.");
+    } catch {
+      setError("Erro ao se comunicar com o servidor.");
+    } finally {
+      setLoading(false);
     }
-
-    setError(result?.error || "Não foi possível criar sua conta agora.");
   };
 
   return (
@@ -88,6 +98,14 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
               required
             />
 
+            <label>CELULAR / WHATSAPP</label>
+            <input
+              type="tel"
+              placeholder="(00) 90000-0000"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+
             <label>SENHA</label>
             <input
               type="password"
@@ -106,8 +124,8 @@ export default function Registro({ onClose, onLogin, onRegisterSubmit, logoSrc =
               required
             />
 
-            <button className="login-btn" type="submit">
-              CRIAR CONTA
+            <button className="login-btn" type="submit" disabled={loading}>
+              {loading ? "CRIANDO CONTA..." : "CRIAR CONTA"}
             </button>
 
             {error && <p className="auth-error">{error}</p>}

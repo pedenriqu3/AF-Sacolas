@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { User } from "../types";
 import defaultLogo from "../assets/logo-af.png";
 import "./pedido.css";
 
@@ -190,6 +191,7 @@ const formatCurrency = (value: number) =>
 
 interface PedidoProps {
   onClose?: () => void;
+  currentUser?: User | null;
   logoSrc?: string;
 }
 

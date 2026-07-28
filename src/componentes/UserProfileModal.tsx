@@ -1,0 +1,372 @@
+import React, { useEffect, useState } from "react";
+import { User } from "../types";
+import "./userProfile.css";
+
+interface OrderItem {
+  id: number;
+  bagType: string;
+  bagColors: string;
+  logoColors: string;
+  handleType: string;
+  handleColor: string;
+  size: string;
+  quantity: number;
+  totalAmount: number;
+  status: string;
+  shippingAddr?: string;
+  createdAt: string;
+}
+
+interface UserProfileModalProps {
+  user: User;
+  onClose: () => void;
+  onUpdateUser: (user: User) => void;
+  onLogout: () => void;
+}
+
+export default function UserProfileModal({
+  user,
+  onClose,
+  onUpdateUser,
+  onLogout,
+}: UserProfileModalProps) {
+  const [activeTab, setActiveTab] = useState<"profile" | "orders">("profile");
+
+  // Form de endereço
+  const [zipCode, setZipCode] = useState(user.zipCode || "");
+  const [street, setStreet] = useState(user.street || "");
+  const [number, setNumber] = useState(user.number || "");
+  const [complement, setComplement] = useState(user.complement || "");
+  const [neighborhood, setNeighborhood] = useState(user.neighborhood || "");
+  const [city, setCity] = useState(user.city || "");
+  const [state, setState] = useState(user.state || "");
+
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressMessage, setAddressMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Pedidos
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+
+  // Buscar pedidos do usuário ao abrir aba de pedidos
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const token = localStorage.getItem("af_token");
+      const res = await fetch("http://localhost:3001/api/orders", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setOrders(data.orders || []);
+      }
+    } catch {
+      // Ignorar caso esteja offline
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  // Autopreencher endereço via CEP (ViaCEP API)
+  const handleCepBlur = async () => {
+    const cleanCep = zipCode.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setStreet(data.logradouro || "");
+          setNeighborhood(data.bairro || "");
+          setCity(data.localidade || "");
+          setState(data.uf || "");
+        }
+      } catch {
+        // Ignorar falha de busca de CEP
+      }
+    }
+  };
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingAddress(true);
+    setAddressMessage(null);
+
+    const token = localStorage.getItem("af_token");
+
+    try {
+      const res = await fetch("http://localhost:3001/api/user/address", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          zipCode,
+          street,
+          number,
+          complement,
+          neighborhood,
+          city,
+          state,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        onUpdateUser(data.user);
+        setAddressMessage({ type: "success", text: "Endereço salvo com sucesso!" });
+      } else {
+        setAddressMessage({ type: "error", text: data.error || "Erro ao salvar endereço." });
+      }
+    } catch {
+      // Fallback se estiver offline
+      const updated = {
+        ...user,
+        zipCode,
+        street,
+        number,
+        complement,
+        neighborhood,
+        city,
+        state,
+      };
+      onUpdateUser(updated);
+      setAddressMessage({ type: "success", text: "Endereço salvo localmente!" });
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return (name[0] || "U").toUpperCase();
+  };
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val);
+
+  const formatDate = (isoStr: string) => {
+    try {
+      return new Date(isoStr).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return isoStr;
+    }
+  };
+
+  return (
+    <div className="profile-overlay" onClick={onClose}>
+      <div className="profile-card" onClick={(e) => e.stopPropagation()}>
+        {/* Cabeçalho */}
+        <div className="profile-header">
+          <div className="profile-header__title">
+            <div className="profile-avatar-icon">{getInitials(user.name)}</div>
+            <div>
+              <h2>{user.name}</h2>
+              <p>{user.email}</p>
+            </div>
+          </div>
+          <button className="profile-close-btn" onClick={onClose} aria-label="Fechar perfil">
+            ✕
+          </button>
+        </div>
+
+        {/* Abas */}
+        <div className="profile-tabs">
+          <button
+            className={`profile-tab-btn ${activeTab === "profile" ? "active" : ""}`}
+            onClick={() => setActiveTab("profile")}
+          >
+            Dados & Endereço
+          </button>
+          <button
+            className={`profile-tab-btn ${activeTab === "orders" ? "active" : ""}`}
+            onClick={() => setActiveTab("orders")}
+          >
+            Meus Pedidos
+          </button>
+        </div>
+
+        {/* Conteúdo */}
+        <div className="profile-body">
+          {activeTab === "profile" ? (
+            <>
+              <div className="profile-info-grid">
+                <div className="info-item">
+                  <label>Nome Completo</label>
+                  <span>{user.name}</span>
+                </div>
+                <div className="info-item">
+                  <label>E-mail</label>
+                  <span>{user.email}</span>
+                </div>
+                <div className="info-item">
+                  <label>Celular / WhatsApp</label>
+                  <span>{user.phone || "Não informado"}</span>
+                </div>
+              </div>
+
+              <h3 className="address-section-title">Endereço de Entrega</h3>
+              <form onSubmit={handleSaveAddress} className="address-form">
+                <div className="address-field col-2">
+                  <label htmlFor="zipCode">CEP</label>
+                  <input
+                    id="zipCode"
+                    type="text"
+                    placeholder="00000-000"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    onBlur={handleCepBlur}
+                  />
+                </div>
+
+                <div className="address-field col-4">
+                  <label htmlFor="street">Logradouro / Rua</label>
+                  <input
+                    id="street"
+                    type="text"
+                    placeholder="Rua, Avenida, etc."
+                    value={street}
+                    onChange={(e) => setStreet(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-2">
+                  <label htmlFor="number">Número</label>
+                  <input
+                    id="number"
+                    type="text"
+                    placeholder="123"
+                    value={number}
+                    onChange={(e) => setNumber(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-4">
+                  <label htmlFor="complement">Complemento</label>
+                  <input
+                    id="complement"
+                    type="text"
+                    placeholder="Apto, Bloco, Sala..."
+                    value={complement}
+                    onChange={(e) => setComplement(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-2">
+                  <label htmlFor="neighborhood">Bairro</label>
+                  <input
+                    id="neighborhood"
+                    type="text"
+                    placeholder="Seu bairro"
+                    value={neighborhood}
+                    onChange={(e) => setNeighborhood(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-3">
+                  <label htmlFor="city">Cidade</label>
+                  <input
+                    id="city"
+                    type="text"
+                    placeholder="Sua cidade"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-1">
+                  <label htmlFor="state">UF</label>
+                  <input
+                    id="state"
+                    type="text"
+                    placeholder="SP"
+                    maxLength={2}
+                    value={state}
+                    onChange={(e) => setState(e.target.value.toUpperCase())}
+                  />
+                </div>
+
+                <div className="address-field col-6">
+                  <button type="submit" className="profile-submit-btn" disabled={savingAddress}>
+                    {savingAddress ? "Salvando..." : "Salvar Endereço"}
+                  </button>
+
+                  {addressMessage && (
+                    <p style={{ marginTop: "8px", fontSize: "13px", color: addressMessage.type === "success" ? "#16a34a" : "#dc2626" }}>
+                      {addressMessage.text}
+                    </p>
+                  )}
+                </div>
+              </form>
+            </>
+          ) : (
+            <div className="orders-list">
+              {loadingOrders ? (
+                <p>Carregando histórico de pedidos...</p>
+              ) : orders.length === 0 ? (
+                <p style={{ color: "#64748b" }}>Você ainda não realizou nenhum pedido.</p>
+              ) : (
+                orders.map((item) => (
+                  <article key={item.id} className="order-card">
+                    <div className="order-header">
+                      <div>
+                        <span className="order-id">Pedido #{item.id}</span>
+                        <div className="order-date">{formatDate(item.createdAt)}</div>
+                      </div>
+                      <span className="order-status-badge">{item.status}</span>
+                    </div>
+
+                    <div className="order-details-grid">
+                      <div><strong>Tipo:</strong> {item.bagType}</div>
+                      <div><strong>Tamanho:</strong> {item.size}</div>
+                      <div><strong>Quantidade:</strong> {item.quantity} un.</div>
+                      <div><strong>Cores da Sacola:</strong> {item.bagColors}</div>
+                      <div><strong>Cores da Logo:</strong> {item.logoColors}</div>
+                      <div><strong>Alça:</strong> {item.handleType} ({item.handleColor})</div>
+                    </div>
+
+                    {item.shippingAddr && (
+                      <div style={{ marginTop: "8px", fontSize: "12px", color: "#64748b" }}>
+                        <strong>Entrega em:</strong> {item.shippingAddr}
+                      </div>
+                    )}
+
+                    <div className="order-total-row">
+                      <span>Valor Total:</span>
+                      <span className="order-total-price">{formatCurrency(item.totalAmount)}</span>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Rodapé com Logout */}
+        <div className="logout-btn-wrapper">
+          <button className="logout-btn" onClick={onLogout}>
+            Sair da Conta
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

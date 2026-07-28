@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { User } from "../types";
 
 interface LinkItem {
   id: string;
@@ -16,18 +17,22 @@ const links: LinkItem[] = [
 
 interface NavbarProps {
   activeId?: string;
+  currentUser?: User | null;
   onActiveChange?: (id: string) => void;
   onNavigate?: (id: string) => void;
   onLoginClick?: () => void;
   onPedidoClick?: () => void;
+  onProfileClick?: () => void;
 }
 
 export default function Navbar({
   activeId = "inicio",
+  currentUser,
   onActiveChange,
   onNavigate,
   onLoginClick,
   onPedidoClick,
+  onProfileClick,
 }: NavbarProps) {
   const [observedId, setObservedId] = useState<string>(activeId);
 
@@ -74,7 +79,11 @@ export default function Navbar({
 
     if (link.id === "login") {
       e.preventDefault();
-      onLoginClick?.();
+      if (currentUser) {
+        onProfileClick?.();
+      } else {
+        onLoginClick?.();
+      }
       return;
     }
 
@@ -84,31 +93,60 @@ export default function Navbar({
     }
   };
 
+  const getFirstName = (fullName: string) => fullName.trim().split(" ")[0] || fullName;
+
   return (
     <header className="navbar">
       <h2>AF Sacolas</h2>
       <div className="nav-links">
-        {links.map((link) => (
-          <a
-            key={link.id}
-            href={`#${link.id}`}
-            onClick={(e) => handleLinkClick(e, link)}
-            className={
-              link.id === "login"
-                ? `active login-pill ${activeLinkId === link.id ? "login-pill--observed" : ""}`
-                : link.id !== "inicio" && link.id !== "sobre" && link.id !== "galeria" && activeLinkId === link.id
-                  ? "active"
-                  : ""
-            }
-            aria-current={
-              link.id !== "inicio" && link.id !== "sobre" && link.id !== "galeria" && activeLinkId === link.id
-                ? "page"
-                : undefined
-            }
-          >
-            {link.label}
-          </a>
-        ))}
+        {links.map((link) => {
+          if (link.id === "login" && currentUser) {
+            return (
+              <button
+                key="user-profile"
+                type="button"
+                className="user-avatar-btn"
+                onClick={() => onProfileClick?.()}
+                title="Minha Conta & Pedidos"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "#0c0069",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "999px",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  cursor: "pointer",
+                  transition: "transform 0.2s, background-color 0.2s",
+                }}
+              >
+                <span style={{ fontSize: "16px" }}>👤</span>
+                <span>{getFirstName(currentUser.name)}</span>
+              </button>
+            );
+          }
+
+          return (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              onClick={(e) => handleLinkClick(e, link)}
+              className={
+                link.id === "login"
+                  ? `login-pill ${activeLinkId === link.id ? "active login-pill--observed" : ""}`
+                  : activeLinkId === link.id
+                    ? "active"
+                    : ""
+              }
+              aria-current={activeLinkId === link.id ? "page" : undefined}
+            >
+              {link.label}
+            </a>
+          );
+        })}
       </div>
     </header>
   );

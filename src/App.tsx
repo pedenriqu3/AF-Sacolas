@@ -16,6 +16,7 @@ export interface User {
   id?: number;
   name: string;
   email: string;
+  phone?: string;
   password?: string;
 }
 
@@ -72,47 +73,106 @@ export default function App() {
     setIsOrderActive(true);
   };
 
+  const closeLoginScreen = () => {
+    setIsLoginActive(false);
+    setActiveNavId("inicio");
+  };
+
+  const closeRegisterScreen = () => {
+    setIsRegisterActive(false);
+    setActiveNavId("inicio");
+  };
+
   const closeOrderScreen = () => {
     setIsOrderActive(false);
+    setActiveNavId("inicio");
   };
 
-  const handleLogin = ({ email, password }: { email: string; password?: string }) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const foundUser = users.find(
-      (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
-    );
+  const API_URL = "http://localhost:3001/api/auth";
 
-    if (!foundUser) {
-      return { ok: false, error: "E-mail ou senha inválidos." };
+  const handleLogin = async ({ email, password }: { email: string; password?: string }) => {
+    try {
+      const response = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        return { ok: false, error: data.error || "E-mail ou senha inválidos." };
+      }
+
+      if (data.token) {
+        localStorage.setItem("af_token", data.token);
+      }
+
+      saveCurrentUser(data.user);
+      closeTransientScreens();
+      setActiveNavId("inicio");
+      return { ok: true };
+    } catch {
+      const normalizedEmail = email.trim().toLowerCase();
+      const foundUser = users.find(
+        (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
+      );
+
+      if (!foundUser) {
+        return { ok: false, error: "Não foi possível conectar ao servidor." };
+      }
+
+      saveCurrentUser({ name: foundUser.name, email: foundUser.email });
+      closeTransientScreens();
+      setActiveNavId("inicio");
+      return { ok: true };
     }
-
-    saveCurrentUser({ name: foundUser.name, email: foundUser.email });
-    closeTransientScreens();
-    setActiveNavId("inicio");
-    return { ok: true };
   };
 
-  const handleRegister = ({ name, email, password }: { name: string; email: string; password?: string }) => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const hasUser = users.some((user) => user.email.toLowerCase() === normalizedEmail);
+  const handleRegister = async ({ name, email, phone, password }: { name: string; email: string; phone?: string; password?: string }) => {
+    try {
+      const response = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, password }),
+      });
 
-    if (hasUser) {
-      return { ok: false, error: "Já existe uma conta cadastrada com este e-mail." };
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        return { ok: false, error: data.error || "Não foi possível criar sua conta agora." };
+      }
+
+      if (data.token) {
+        localStorage.setItem("af_token", data.token);
+      }
+
+      saveCurrentUser(data.user);
+      closeTransientScreens();
+      setActiveNavId("inicio");
+      return { ok: true };
+    } catch {
+      const normalizedEmail = email.trim().toLowerCase();
+      const hasUser = users.some((user) => user.email.toLowerCase() === normalizedEmail);
+
+      if (hasUser) {
+        return { ok: false, error: "Já existe uma conta cadastrada com este e-mail." };
+      }
+
+      const nextUser = {
+        id: Date.now(),
+        name: name.trim(),
+        email: normalizedEmail,
+        password,
+      };
+
+      const nextUsers = [...users, nextUser];
+      saveUsers(nextUsers);
+      saveCurrentUser({ name: nextUser.name, email: nextUser.email });
+      closeTransientScreens();
+      setActiveNavId("inicio");
+      return { ok: true };
     }
-
-    const nextUser = {
-      id: Date.now(),
-      name: name.trim(),
-      email: normalizedEmail,
-      password,
-    };
-
-    const nextUsers = [...users, nextUser];
-    saveUsers(nextUsers);
-    saveCurrentUser({ name: nextUser.name, email: nextUser.email });
-    closeTransientScreens();
-    setActiveNavId("inicio");
-    return { ok: true };
   };
 
   return (
@@ -128,13 +188,13 @@ export default function App() {
         <Pedido onClose={closeOrderScreen} />
       ) : isRegisterActive ? (
         <Registro
-          onClose={() => setIsRegisterActive(false)}
+          onClose={closeRegisterScreen}
           onLogin={openLoginScreen}
           onRegisterSubmit={handleRegister}
         />
       ) : isLoginActive ? (
         <Login
-          onClose={() => setIsLoginActive(false)}
+          onClose={closeLoginScreen}
           onLogin={handleLogin}
           onRegister={() => {
             setIsLoginActive(false);
