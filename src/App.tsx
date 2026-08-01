@@ -8,17 +8,11 @@ import Footer from "./componentes/Footer";
 import Login from "./login/Login";
 import Registro from "./login/Registro";
 import Pedido from "./pedido/Pedido";
+import { User } from "./types";
 
 const USERS_STORAGE_KEY = "af_users";
 const CURRENT_USER_STORAGE_KEY = "af_current_user";
-
-export interface User {
-  id?: number;
-  name: string;
-  email: string;
-  phone?: string;
-  password?: string;
-}
+const CURRENT_TOKEN_STORAGE_KEY = "af_token";
 
 function readFromStorage<T>(key: string, fallbackValue: T): T {
   try {
@@ -34,6 +28,7 @@ export default function App() {
   const [isLoginActive, setIsLoginActive] = useState<boolean>(false);
   const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
   const [isOrderActive, setIsOrderActive] = useState<boolean>(false);
+
   const [users, setUsers] = useState<User[]>(() => readFromStorage<User[]>(USERS_STORAGE_KEY, []));
   const [currentUser, setCurrentUser] = useState<User | null>(() =>
     readFromStorage<User | null>(CURRENT_USER_STORAGE_KEY, null)
@@ -44,15 +39,15 @@ export default function App() {
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(nextUsers));
   };
 
-  const saveCurrentUser = (user: User | null) => {
+  const saveCurrentUser = (user: User | null, token?: string) => {
     setCurrentUser(user);
-
     if (user) {
       localStorage.setItem(CURRENT_USER_STORAGE_KEY, JSON.stringify(user));
+      if (token) localStorage.setItem(CURRENT_TOKEN_STORAGE_KEY, token);
       return;
     }
-
     localStorage.removeItem(CURRENT_USER_STORAGE_KEY);
+    localStorage.removeItem(CURRENT_TOKEN_STORAGE_KEY);
   };
 
   const closeTransientScreens = () => {
@@ -88,40 +83,28 @@ export default function App() {
     setActiveNavId("inicio");
   };
 
-  const API_URL = "http://localhost:3001/api/auth";
+  const API_AUTH = "http://localhost:3001/api/auth";
 
   const handleLogin = async ({ email, password }: { email: string; password?: string }) => {
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_AUTH}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: normalizedEmail, password }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        return { ok: false, error: data.error || "E-mail ou senha inválidos." };
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        saveCurrentUser(data.user, data.token);
+        closeTransientScreens();
+        setActiveNavId("inicio");
+        return { ok: true };
       }
-
-      if (data.token) {
-        localStorage.setItem("af_token", data.token);
-      }
-
-      saveCurrentUser(data.user);
-      closeTransientScreens();
-      setActiveNavId("inicio");
-      return { ok: true };
+      return { ok: false, error: data.error || "E-mail ou senha inválidos." };
     } catch {
-      const normalizedEmail = email.trim().toLowerCase();
-      const foundUser = users.find(
-        (user) => user.email.toLowerCase() === normalizedEmail && user.password === password
-      );
-
-      if (!foundUser) {
-        return { ok: false, error: "Não foi possível conectar ao servidor." };
-      }
-
+      // fallback to local storage auth
+      const foundUser = users.find((u) => u.email.toLowerCase() === normalizedEmail && (u as any).password === password);
+      if (!foundUser) return { ok: false, error: "E-mail ou senha inválidos." };
       saveCurrentUser({ name: foundUser.name, email: foundUser.email });
       closeTransientScreens();
       setActiveNavId("inicio");
@@ -129,43 +112,27 @@ export default function App() {
     }
   };
 
-  const handleRegister = async ({ name, email, phone, password }: { name: string; email: string; phone?: string; password?: string }) => {
+  const handleRegister = async ({ name, email, phone, password }: { name: string; email: string; password?: string; phone?: string }) => {
+    const normalizedEmail = email.trim().toLowerCase();
     try {
-      const response = await fetch(`${API_URL}/register`, {
+      const res = await fetch(`${API_AUTH}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password }),
+        body: JSON.stringify({ name, email: normalizedEmail, phone, password }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.ok) {
-        return { ok: false, error: data.error || "Não foi possível criar sua conta agora." };
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        saveCurrentUser(data.user, data.token);
+        closeTransientScreens();
+        setActiveNavId("inicio");
+        return { ok: true };
       }
-
-      if (data.token) {
-        localStorage.setItem("af_token", data.token);
-      }
-
-      saveCurrentUser(data.user);
-      closeTransientScreens();
-      setActiveNavId("inicio");
-      return { ok: true };
+      return { ok: false, error: data.error || "Erro ao criar conta." };
     } catch {
-      const normalizedEmail = email.trim().toLowerCase();
-      const hasUser = users.some((user) => user.email.toLowerCase() === normalizedEmail);
-
-      if (hasUser) {
-        return { ok: false, error: "Já existe uma conta cadastrada com este e-mail." };
-      }
-
-      const nextUser = {
-        id: Date.now(),
-        name: name.trim(),
-        email: normalizedEmail,
-        password,
-      };
-
+      // fallback local register
+      const hasUser = users.some((u) => u.email.toLowerCase() === normalizedEmail);
+      if (hasUser) return { ok: false, error: "Já existe uma conta cadastrada com este e-mail." };
+      const nextUser: any = { id: Date.now(), name: name.trim(), email: normalizedEmail, password };
       const nextUsers = [...users, nextUser];
       saveUsers(nextUsers);
       saveCurrentUser({ name: nextUser.name, email: nextUser.email });
@@ -183,24 +150,16 @@ export default function App() {
         onNavigate={closeTransientScreens}
         onLoginClick={openLoginScreen}
         onPedidoClick={openOrderScreen}
+        onProfileClick={() => setIsRegisterActive(true)}
+        currentUser={currentUser}
       />
+
       {isOrderActive ? (
         <Pedido onClose={closeOrderScreen} />
       ) : isRegisterActive ? (
-        <Registro
-          onClose={closeRegisterScreen}
-          onLogin={openLoginScreen}
-          onRegisterSubmit={handleRegister}
-        />
+        <Registro onClose={closeRegisterScreen} onLogin={openLoginScreen} onRegisterSubmit={handleRegister} />
       ) : isLoginActive ? (
-        <Login
-          onClose={closeLoginScreen}
-          onLogin={handleLogin}
-          onRegister={() => {
-            setIsLoginActive(false);
-            setIsRegisterActive(true);
-          }}
-        />
+        <Login onClose={closeLoginScreen} onLogin={handleLogin} onRegister={() => { setIsLoginActive(false); setIsRegisterActive(true); }} />
       ) : (
         <>
           <Hero onPedidoClick={openOrderScreen} />
