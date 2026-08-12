@@ -5,11 +5,12 @@ import defaultLogo from "../assets/logo-af.png";
 interface LoginProps {
   onClose?: () => void;
   onRegister?: () => void;
+  onForgotPassword?: () => void;
   onLogin?: (data: { email: string; password?: string }) => Promise<{ ok: boolean; error?: string }> | { ok: boolean; error?: string } | undefined;
   logoSrc?: string;
 }
 
-export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultLogo }: LoginProps) {
+export default function Login({ onClose, onRegister, onForgotPassword, onLogin, logoSrc = defaultLogo }: LoginProps) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -82,7 +83,9 @@ export default function Login({ onClose, onRegister, onLogin, logoSrc = defaultL
 
             <div className="password-header">
               <label>SENHA</label>
-              <a href="#">Esqueceu sua senha?</a>
+              <button type="button" className="forgot-link" onClick={onForgotPassword}>
+                Esqueceu sua senha?
+              </button>
             </div>
 
             <input

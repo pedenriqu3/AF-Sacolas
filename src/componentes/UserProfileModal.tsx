@@ -32,7 +32,9 @@ export default function UserProfileModal({
 }: UserProfileModalProps) {
   const [activeTab, setActiveTab] = useState<"profile" | "orders">("profile");
 
-  // Form de endereço
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [phone, setPhone] = useState(user.phone || "");
   const [zipCode, setZipCode] = useState(user.zipCode || "");
   const [street, setStreet] = useState(user.street || "");
   const [number, setNumber] = useState(user.number || "");
@@ -41,12 +43,25 @@ export default function UserProfileModal({
   const [city, setCity] = useState(user.city || "");
   const [state, setState] = useState(user.state || "");
 
-  const [savingAddress, setSavingAddress] = useState(false);
-  const [addressMessage, setAddressMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   // Pedidos
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+
+  useEffect(() => {
+    setName(user.name);
+    setEmail(user.email);
+    setPhone(user.phone || "");
+    setZipCode(user.zipCode || "");
+    setStreet(user.street || "");
+    setNumber(user.number || "");
+    setComplement(user.complement || "");
+    setNeighborhood(user.neighborhood || "");
+    setCity(user.city || "");
+    setState(user.state || "");
+  }, [user]);
 
   // Buscar pedidos do usuário ao abrir aba de pedidos
   useEffect(() => {
@@ -94,21 +109,24 @@ export default function UserProfileModal({
     }
   };
 
-  const handleSaveAddress = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavingAddress(true);
-    setAddressMessage(null);
+    setSavingProfile(true);
+    setProfileMessage(null);
 
     const token = localStorage.getItem("af_token");
 
     try {
-      const res = await fetch("http://localhost:3001/api/user/address", {
+      const res = await fetch("http://localhost:3001/api/user/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          name,
+          email,
+          phone,
           zipCode,
           street,
           number,
@@ -123,14 +141,17 @@ export default function UserProfileModal({
 
       if (res.ok && data.ok) {
         onUpdateUser(data.user);
-        setAddressMessage({ type: "success", text: "Endereço salvo com sucesso!" });
+        setProfileMessage({ type: "success", text: "Dados atualizados com sucesso!" });
       } else {
-        setAddressMessage({ type: "error", text: data.error || "Erro ao salvar endereço." });
+        setProfileMessage({ type: "error", text: data.error || "Erro ao salvar seus dados." });
       }
     } catch {
       // Fallback se estiver offline
       const updated = {
         ...user,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
         zipCode,
         street,
         number,
@@ -140,9 +161,9 @@ export default function UserProfileModal({
         state,
       };
       onUpdateUser(updated);
-      setAddressMessage({ type: "success", text: "Endereço salvo localmente!" });
+      setProfileMessage({ type: "success", text: "Dados salvos localmente!" });
     } finally {
-      setSavingAddress(false);
+      setSavingProfile(false);
     }
   };
 
@@ -211,20 +232,59 @@ export default function UserProfileModal({
               <div className="profile-info-grid">
                 <div className="info-item">
                   <label>Nome Completo</label>
-                  <span>{user.name}</span>
+                  <span>{name}</span>
                 </div>
                 <div className="info-item">
                   <label>E-mail</label>
-                  <span>{user.email}</span>
+                  <span>{email}</span>
                 </div>
                 <div className="info-item">
                   <label>Celular / WhatsApp</label>
-                  <span>{user.phone || "Não informado"}</span>
+                  <span>{phone || "Não informado"}</span>
                 </div>
               </div>
 
-              <h3 className="address-section-title">Endereço de Entrega</h3>
-              <form onSubmit={handleSaveAddress} className="address-form">
+              <h3 className="address-section-title">Editar cadastro</h3>
+              <form onSubmit={handleSaveProfile} className="address-form">
+                <div className="address-field col-3">
+                  <label htmlFor="name">Nome completo</label>
+                  <input
+                    id="name"
+                    type="text"
+                    placeholder="Seu nome"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-3">
+                  <label htmlFor="email">E-mail</label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="voce@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-2">
+                  <label htmlFor="phone">Celular / WhatsApp</label>
+                  <input
+                    id="phone"
+                    type="text"
+                    placeholder="(00) 00000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+
+                <div className="address-field col-6">
+                  <h3 className="address-section-title" style={{ marginBottom: 0 }}>
+                    Endereço de entrega
+                  </h3>
+                </div>
+
                 <div className="address-field col-2">
                   <label htmlFor="zipCode">CEP</label>
                   <input
@@ -305,13 +365,13 @@ export default function UserProfileModal({
                 </div>
 
                 <div className="address-field col-6">
-                  <button type="submit" className="profile-submit-btn" disabled={savingAddress}>
-                    {savingAddress ? "Salvando..." : "Salvar Endereço"}
+                  <button type="submit" className="profile-submit-btn" disabled={savingProfile}>
+                    {savingProfile ? "Salvando..." : "Salvar alterações"}
                   </button>
 
-                  {addressMessage && (
-                    <p style={{ marginTop: "8px", fontSize: "13px", color: addressMessage.type === "success" ? "#16a34a" : "#dc2626" }}>
-                      {addressMessage.text}
+                  {profileMessage && (
+                    <p style={{ marginTop: "8px", fontSize: "13px", color: profileMessage.type === "success" ? "#16a34a" : "#dc2626" }}>
+                      {profileMessage.text}
                     </p>
                   )}
                 </div>

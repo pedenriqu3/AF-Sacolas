@@ -1,0 +1,15 @@
+export const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  zipCode: true,
+  street: true,
+  number: true,
+  complement: true,
+  neighborhood: true,
+  city: true,
+  state: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;

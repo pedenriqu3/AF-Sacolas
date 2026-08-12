@@ -159,6 +159,31 @@ input {
   text-decoration: none;
 }
 
+.forgot-link {
+  border: none;
+  background: transparent;
+  color: #ff00cc;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.auth-back-link {
+  align-self: flex-start;
+  margin-bottom: 12px;
+  color: #0c0069;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.auth-success {
+  margin-top: 14px;
+  color: #16a34a;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .remember {
   display: flex;
   align-items: center;

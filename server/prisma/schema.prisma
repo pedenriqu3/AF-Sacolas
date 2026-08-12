@@ -20,6 +20,8 @@ model User {
   city         String?
   state        String?
   passwordHash String
+  resetTokenHash String?
+  resetTokenExpiresAt DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   feedbacks    Feedback[]

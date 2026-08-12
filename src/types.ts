@@ -11,6 +11,8 @@ export interface User {
   neighborhood?: string;
   city?: string;
   state?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default User;

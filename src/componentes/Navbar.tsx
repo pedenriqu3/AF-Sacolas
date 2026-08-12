@@ -69,16 +69,16 @@ export default function Navbar({
   const activeLinkId = activeId || observedId;
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, link: LinkItem) => {
-    onActiveChange?.(link.id);
-
     if (link.id === "pedido") {
       e.preventDefault();
+      onActiveChange?.(link.id);
       onPedidoClick?.();
       return;
     }
 
     if (link.id === "login") {
       e.preventDefault();
+      onActiveChange?.(link.id);
       if (currentUser) {
         onProfileClick?.();
       } else {
@@ -87,7 +87,10 @@ export default function Navbar({
       return;
     }
 
+    e.preventDefault();
+    onActiveChange?.(link.id);
     onNavigate?.(link.id);
+    document.getElementById(link.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     if (activeId === "login" || activeId === "pedido") {
       onActiveChange?.(link.id);
     }
@@ -132,7 +135,7 @@ export default function Navbar({
           return (
             <a
               key={link.id}
-              href={`#${link.id}`}
+              href="/"
               onClick={(e) => handleLinkClick(e, link)}
               className={
                 link.id === "login"

@@ -5,6 +5,7 @@ import Materials from "./componentes/Materials";
 import Eco from "./componentes/Eco";
 import FeedBack from "./componentes/Testimonials";
 import Footer from "./componentes/Footer";
+import UserProfileModal from "./componentes/UserProfileModal";
 import Login from "./login/Login";
 import Registro from "./login/Registro";
 import Pedido from "./pedido/Pedido";
@@ -28,6 +29,7 @@ export default function App() {
   const [isLoginActive, setIsLoginActive] = useState<boolean>(false);
   const [isRegisterActive, setIsRegisterActive] = useState<boolean>(false);
   const [isOrderActive, setIsOrderActive] = useState<boolean>(false);
+  const [isProfileActive, setIsProfileActive] = useState<boolean>(false);
 
   const [users, setUsers] = useState<User[]>(() => readFromStorage<User[]>(USERS_STORAGE_KEY, []));
   const [currentUser, setCurrentUser] = useState<User | null>(() =>
@@ -54,6 +56,7 @@ export default function App() {
     setIsLoginActive(false);
     setIsRegisterActive(false);
     setIsOrderActive(false);
+    setIsProfileActive(false);
   };
 
   const openLoginScreen = () => {
@@ -68,6 +71,17 @@ export default function App() {
     setIsOrderActive(true);
   };
 
+  const openProfileScreen = () => {
+    if (!currentUser) {
+      openLoginScreen();
+      return;
+    }
+
+    setActiveNavId("login");
+    closeTransientScreens();
+    setIsProfileActive(true);
+  };
+
   const closeLoginScreen = () => {
     setIsLoginActive(false);
     setActiveNavId("inicio");
@@ -80,6 +94,11 @@ export default function App() {
 
   const closeOrderScreen = () => {
     setIsOrderActive(false);
+    setActiveNavId("inicio");
+  };
+
+  const closeProfileScreen = () => {
+    setIsProfileActive(false);
     setActiveNavId("inicio");
   };
 
@@ -142,6 +161,16 @@ export default function App() {
     }
   };
 
+  const handleUpdateCurrentUser = (updatedUser: User) => {
+    saveCurrentUser(updatedUser, localStorage.getItem(CURRENT_TOKEN_STORAGE_KEY) || undefined);
+  };
+
+  const handleLogout = () => {
+    saveCurrentUser(null);
+    closeTransientScreens();
+    setActiveNavId("inicio");
+  };
+
   return (
     <>
       <Navbar
@@ -150,7 +179,7 @@ export default function App() {
         onNavigate={closeTransientScreens}
         onLoginClick={openLoginScreen}
         onPedidoClick={openOrderScreen}
-        onProfileClick={() => setIsRegisterActive(true)}
+        onProfileClick={openProfileScreen}
         currentUser={currentUser}
       />
 
@@ -159,7 +188,18 @@ export default function App() {
       ) : isRegisterActive ? (
         <Registro onClose={closeRegisterScreen} onLogin={openLoginScreen} onRegisterSubmit={handleRegister} />
       ) : isLoginActive ? (
-        <Login onClose={closeLoginScreen} onLogin={handleLogin} onRegister={() => { setIsLoginActive(false); setIsRegisterActive(true); }} />
+        <Login
+          onClose={closeLoginScreen}
+          onLogin={handleLogin}
+          onRegister={() => {
+            setIsLoginActive(false);
+            setIsRegisterActive(true);
+          }}
+          onForgotPassword={() => {
+            setIsLoginActive(false);
+            window.location.hash = "#/forgot-password";
+          }}
+        />
       ) : (
         <>
           <Hero onPedidoClick={openOrderScreen} />
@@ -168,6 +208,15 @@ export default function App() {
           <FeedBack currentUser={currentUser} onRequestLogin={openLoginScreen} />
           <Footer />
         </>
+      )}
+
+      {isProfileActive && currentUser && (
+        <UserProfileModal
+          user={currentUser}
+          onClose={closeProfileScreen}
+          onUpdateUser={handleUpdateCurrentUser}
+          onLogout={handleLogout}
+        />
       )}
     </>
   );

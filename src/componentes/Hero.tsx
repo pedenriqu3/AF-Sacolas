@@ -17,7 +17,7 @@ export default function Hero({ onPedidoClick }: HeroProps) {
         <div className="buttons">
           <a
             className="primary"
-            href="#pedido"
+            href="/"
             onClick={(event) => {
               event.preventDefault();
               onPedidoClick?.();
@@ -25,7 +25,16 @@ export default function Hero({ onPedidoClick }: HeroProps) {
           >
             Começar Criação
           </a>
-          <a className="secondary" href="#galeria">Ver Galeria</a>
+          <a
+            className="secondary"
+            href="/"
+            onClick={(event) => {
+              event.preventDefault();
+              document.getElementById("galeria")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            Ver Galeria
+          </a>
         </div>
       </div>
     </section>

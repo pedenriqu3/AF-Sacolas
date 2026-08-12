@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { User } from "../types";
 
 const FEEDBACKS_STORAGE_KEY = "af_feedbacks";
+const API_FEEDBACKS = "http://localhost:3001/api/feedbacks";
 
 interface Feedback {
   id: number;
@@ -32,6 +33,24 @@ export default function Testimonials({ currentUser, onRequestLogin }: Testimonia
   const [message, setMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  useEffect(() => {
+    const loadFeedbacks = async () => {
+      try {
+        const res = await fetch(API_FEEDBACKS);
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          setFeedbacks(data.feedbacks || []);
+          localStorage.setItem(FEEDBACKS_STORAGE_KEY, JSON.stringify(data.feedbacks || []));
+        }
+      } catch {
+        setFeedbacks(readFeedbacks());
+      }
+    };
+
+    loadFeedbacks();
+  }, []);
+
   const averageRating = useMemo(() => {
     if (feedbacks.length === 0) {
       return "0.0";
@@ -41,7 +60,7 @@ export default function Testimonials({ currentUser, onRequestLogin }: Testimonia
     return (total / feedbacks.length).toFixed(1);
   }, [feedbacks]);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
@@ -65,9 +84,34 @@ export default function Testimonials({ currentUser, onRequestLogin }: Testimonia
       createdAt: new Date().toISOString(),
     };
 
-    const nextFeedbacks = [nextFeedback, ...feedbacks];
-    setFeedbacks(nextFeedbacks);
-    localStorage.setItem(FEEDBACKS_STORAGE_KEY, JSON.stringify(nextFeedbacks));
+    try {
+      const token = localStorage.getItem("af_token");
+      const res = await fetch(API_FEEDBACKS, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rating: Number(rating), message: trimmedMessage }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.ok) {
+        const nextFeedbacks = [data.feedback as Feedback, ...feedbacks];
+        setFeedbacks(nextFeedbacks);
+        localStorage.setItem(FEEDBACKS_STORAGE_KEY, JSON.stringify(nextFeedbacks));
+      } else {
+        const nextFeedbacks = [nextFeedback, ...feedbacks];
+        setFeedbacks(nextFeedbacks);
+        localStorage.setItem(FEEDBACKS_STORAGE_KEY, JSON.stringify(nextFeedbacks));
+      }
+    } catch {
+      const nextFeedbacks = [nextFeedback, ...feedbacks];
+      setFeedbacks(nextFeedbacks);
+      localStorage.setItem(FEEDBACKS_STORAGE_KEY, JSON.stringify(nextFeedbacks));
+    }
+
     setMessage("");
     setRating("5");
   };
