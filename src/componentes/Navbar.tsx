@@ -96,8 +96,6 @@ export default function Navbar({
     }
   };
 
-  const getFirstName = (fullName: string) => fullName.trim().split(" ")[0] || fullName;
-
   return (
     <header className="navbar">
       <h2>AF Sacolas</h2>
@@ -127,7 +125,6 @@ export default function Navbar({
                 }}
               >
                 <span style={{ fontSize: "16px" }}>👤</span>
-                <span>{getFirstName(currentUser.name)}</span>
               </button>
             );
           }

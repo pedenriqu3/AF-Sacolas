@@ -104,6 +104,22 @@ export default function App() {
 
   const API_AUTH = "http://localhost:3001/api/auth";
 
+  const loginWithLocalStorage = (email: string, password?: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const foundUser = users.find(
+      (u) => u.email.trim().toLowerCase() === normalizedEmail && (u as any).password === password
+    );
+
+    if (!foundUser) {
+      return { ok: false, error: "E-mail ou senha inválidos." };
+    }
+
+    saveCurrentUser({ name: foundUser.name, email: foundUser.email });
+    closeTransientScreens();
+    setActiveNavId("inicio");
+    return { ok: true };
+  };
+
   const handleLogin = async ({ email, password }: { email: string; password?: string }) => {
     const normalizedEmail = email.trim().toLowerCase();
     try {
@@ -112,22 +128,22 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: normalizedEmail, password }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         saveCurrentUser(data.user, data.token);
         closeTransientScreens();
         setActiveNavId("inicio");
         return { ok: true };
       }
-      return { ok: false, error: data.error || "E-mail ou senha inválidos." };
+
+      const localResult = loginWithLocalStorage(normalizedEmail, password);
+      if (localResult.ok) {
+        return localResult;
+      }
+
+      return { ok: false, error: data.error || localResult.error || "E-mail ou senha inválidos." };
     } catch {
-      // fallback to local storage auth
-      const foundUser = users.find((u) => u.email.toLowerCase() === normalizedEmail && (u as any).password === password);
-      if (!foundUser) return { ok: false, error: "E-mail ou senha inválidos." };
-      saveCurrentUser({ name: foundUser.name, email: foundUser.email });
-      closeTransientScreens();
-      setActiveNavId("inicio");
-      return { ok: true };
+      return loginWithLocalStorage(normalizedEmail, password);
     }
   };
 
@@ -141,6 +157,8 @@ export default function App() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
+        const cachedUser = { id: data.user?.id ?? Date.now(), name: name.trim(), email: normalizedEmail, password };
+        saveUsers([...users, cachedUser as User]);
         saveCurrentUser(data.user, data.token);
         closeTransientScreens();
         setActiveNavId("inicio");
